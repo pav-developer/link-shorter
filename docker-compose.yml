@@ -1,0 +1,41 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: links-nginx
+    volumes:
+      - ./src:/var/www/html
+      - ./conf/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+    networks:
+      - app-network
+  php:
+      build: ./web
+      container_name: links-php
+      volumes:
+        - ./src:/var/www/html
+      expose:
+        - "9000"  # Важно открыть порт для FPM
+      networks:
+        - app-network
+  db:
+      image: mysql:8.0.26
+      container_name: links-mysql
+      volumes:
+        - ./mysql:/var/lib/mysql
+        - ./mysql-files:/var/lib/mysql-files
+        - ./conf/mysql/my.cnf:/etc/mysql/my.cnf
+      ports:
+        - "3306:3306"
+      environment:
+        - MYSQL_ROOT_PASSWORD=root
+        - MYSQL_USER=linkshorter
+        - MYSQL_DATABASE=linkshorter
+        - MYSQL_PASSWORD=linkshorter
+      networks:
+        - app-network
+networks:
+  app-network:
+    driver: bridge
